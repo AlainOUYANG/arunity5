@@ -76,6 +76,7 @@ public class ARControllerEditor : Editor
 			arcontroller.videoConfigurationWindowsStore0 = EditorGUILayout.TextField("Video config. (Windows Store)", arcontroller.videoConfigurationWindowsStore0);
 			arcontroller.videoConfigurationLinux0 = EditorGUILayout.TextField("Video config. (Linux)", arcontroller.videoConfigurationLinux0);
 			arcontroller.BackgroundLayer0 = EditorGUILayout.LayerField("Layer", arcontroller.BackgroundLayer0);
+			arcontroller.dontShowVideo = EditorGUILayout.Toggle ("Don't show video", arcontroller.dontShowVideo);
 
 			arcontroller.VideoIsStereo = EditorGUILayout.Toggle("Video source is stereo", arcontroller.VideoIsStereo);
 			if (arcontroller.VideoIsStereo) {

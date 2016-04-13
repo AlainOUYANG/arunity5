@@ -111,6 +111,7 @@ public class ARController : MonoBehaviour
 	public string videoConfigurationWindowsStore0 = "-device=WinMC -format=BGRA -position=rear";
 	public string videoConfigurationLinux0="";
 	public int BackgroundLayer0 = 8;
+	public bool dontShowVideo = false;
 
 	// Config. out.
 	private int _videoWidth0 = 0;
@@ -623,6 +624,8 @@ public class ARController : MonoBehaviour
             return false;
         }
         
+		if(dontShowVideo==false) {
+
         if (!_sceneConfiguredForVideo) {
             
             // Wait for the wrapper to confirm video frames have arrived before configuring our video-dependent stuff.
@@ -637,55 +640,67 @@ public class ARController : MonoBehaviour
 				// Retrieve ARToolKit video source(s) frame size and format, and projection matrix, and store globally.
 				// Then create the required object(s) to instantiate a mesh/meshes with the frame texture(s).
 				// Each mesh lives in a separate "video background" layer.
-				if (!VideoIsStereo) {
+									
+					if (!VideoIsStereo) {
 
-					// ARToolKit video size and format.
-				 
-					bool ok1 = PluginFunctions.arwGetVideoParams(out _videoWidth0, out _videoHeight0, out _videoPixelSize0, out _videoPixelFormatString0);
-					if (!ok1) return false;
-					Log(LogTag + "Video " + _videoWidth0 + "x" + _videoHeight0 + "@" + _videoPixelSize0 + "Bpp (" + _videoPixelFormatString0 + ")");
-					
-					// ARToolKit projection matrix adjusted for Unity
-					float[] projRaw = new float[16];
-					PluginFunctions.arwGetProjectionMatrix(projRaw);
-					_videoProjectionMatrix0 = ARUtilityFunctions.MatrixFromFloatArray(projRaw);
-					Log(LogTag + "Projection matrix: [" + Environment.NewLine + _videoProjectionMatrix0.ToString().Trim() + "]");
-					if (ContentRotate90) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix0;
-					if (ContentFlipV) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix0;
-					if (ContentFlipH) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix0;
+						// ARToolKit video size and format.
+					 
+						bool ok1 = PluginFunctions.arwGetVideoParams (out _videoWidth0, out _videoHeight0, out _videoPixelSize0, out _videoPixelFormatString0);
+						if (!ok1)
+							return false;
+						Log (LogTag + "Video " + _videoWidth0 + "x" + _videoHeight0 + "@" + _videoPixelSize0 + "Bpp (" + _videoPixelFormatString0 + ")");
+						
+						// ARToolKit projection matrix adjusted for Unity
+						float[] projRaw = new float[16];
+						PluginFunctions.arwGetProjectionMatrix (projRaw);
+						_videoProjectionMatrix0 = ARUtilityFunctions.MatrixFromFloatArray (projRaw);
+						Log (LogTag + "Projection matrix: [" + Environment.NewLine + _videoProjectionMatrix0.ToString ().Trim () + "]");
+						if (ContentRotate90)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.AngleAxis (90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix0;
+						if (ContentFlipV)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix0;
+						if (ContentFlipH)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix0;
 
-					_videoBackgroundMeshGO0 = CreateVideoBackgroundMesh(0, _videoWidth0, _videoHeight0, BackgroundLayer0, out _videoColorArray0, out _videoColor32Array0, out _videoTexture0, out _videoMaterial0);
-					if (_videoBackgroundMeshGO0 == null || _videoTexture0 == null || _videoMaterial0 == null) {
-						Log (LogTag + "Error: unable to create video mesh.");
+						_videoBackgroundMeshGO0 = CreateVideoBackgroundMesh (0, _videoWidth0, _videoHeight0, BackgroundLayer0, out _videoColorArray0, out _videoColor32Array0, out _videoTexture0, out _videoMaterial0);
+						if (_videoBackgroundMeshGO0 == null || _videoTexture0 == null || _videoMaterial0 == null) {
+							Log (LogTag + "Error: unable to create video mesh.");
+						}
+
+					} else {
+
+						// ARToolKit stereo video size and format.
+						bool ok1 = PluginFunctions.arwGetVideoParamsStereo (out _videoWidth0, out _videoHeight0, out _videoPixelSize0, out _videoPixelFormatString0, out _videoWidth1, out _videoHeight1, out _videoPixelSize1, out _videoPixelFormatString1);
+						if (!ok1)
+							return false;
+						Log (LogTag + "Video left " + _videoWidth0 + "x" + _videoHeight0 + "@" + _videoPixelSize0 + "Bpp (" + _videoPixelFormatString0 + "), right " + _videoWidth1 + "x" + _videoHeight1 + "@" + _videoPixelSize1 + "Bpp (" + _videoPixelFormatString1 + ")");
+						
+						// ARToolKit projection matrices, adjusted for Unity
+						float[] projRaw0 = new float[16];
+						float[] projRaw1 = new float[16];
+						PluginFunctions.arwGetProjectionMatrixStereo (projRaw0, projRaw1);
+						_videoProjectionMatrix0 = ARUtilityFunctions.MatrixFromFloatArray (projRaw0);
+						_videoProjectionMatrix1 = ARUtilityFunctions.MatrixFromFloatArray (projRaw1);
+						Log (LogTag + "Projection matrix left: [" + Environment.NewLine + _videoProjectionMatrix0.ToString ().Trim () + "], right: [" + Environment.NewLine + _videoProjectionMatrix1.ToString ().Trim () + "]");
+						if (ContentRotate90)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.AngleAxis (90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix0;
+						if (ContentRotate90)
+							_videoProjectionMatrix1 = Matrix4x4.TRS (Vector3.zero, Quaternion.AngleAxis (90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix1;
+						if (ContentFlipV)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix0;
+						if (ContentFlipV)
+							_videoProjectionMatrix1 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix1;
+						if (ContentFlipH)
+							_videoProjectionMatrix0 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix0;
+						if (ContentFlipH)
+							_videoProjectionMatrix1 = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix1;
+
+						_videoBackgroundMeshGO0 = CreateVideoBackgroundMesh (0, _videoWidth0, _videoHeight0, BackgroundLayer0, out _videoColorArray0, out _videoColor32Array0, out _videoTexture0, out _videoMaterial0);
+						_videoBackgroundMeshGO1 = CreateVideoBackgroundMesh (1, _videoWidth1, _videoHeight1, BackgroundLayer1, out _videoColorArray1, out _videoColor32Array1, out _videoTexture1, out _videoMaterial1);
+						if (_videoBackgroundMeshGO0 == null || _videoTexture0 == null || _videoMaterial0 == null || _videoBackgroundMeshGO1 == null || _videoTexture1 == null || _videoMaterial1 == null) {
+							Log (LogTag + "Error: unable to create video background mesh.");
+						}
 					}
-
-				} else {
-
-					// ARToolKit stereo video size and format.
-					bool ok1 = PluginFunctions.arwGetVideoParamsStereo(out _videoWidth0, out _videoHeight0, out _videoPixelSize0, out _videoPixelFormatString0, out _videoWidth1, out _videoHeight1, out _videoPixelSize1, out _videoPixelFormatString1);
-					if (!ok1) return false;
-					Log(LogTag + "Video left " + _videoWidth0 + "x" + _videoHeight0 + "@" + _videoPixelSize0 + "Bpp (" + _videoPixelFormatString0 + "), right " + _videoWidth1 + "x" + _videoHeight1 + "@" + _videoPixelSize1 + "Bpp (" + _videoPixelFormatString1 + ")");
-					
-					// ARToolKit projection matrices, adjusted for Unity
-					float[] projRaw0 = new float[16];
-					float[] projRaw1 = new float[16];
-					PluginFunctions.arwGetProjectionMatrixStereo(projRaw0, projRaw1);
-					_videoProjectionMatrix0 = ARUtilityFunctions.MatrixFromFloatArray(projRaw0);
-					_videoProjectionMatrix1 = ARUtilityFunctions.MatrixFromFloatArray(projRaw1);
-					Log(LogTag + "Projection matrix left: [" + Environment.NewLine + _videoProjectionMatrix0.ToString().Trim() + "], right: [" + Environment.NewLine + _videoProjectionMatrix1.ToString().Trim() + "]");
-					if (ContentRotate90) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix0;
-					if (ContentRotate90) _videoProjectionMatrix1 = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90.0f, Vector3.back), Vector3.one) * _videoProjectionMatrix1;
-					if (ContentFlipV) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix0;
-					if (ContentFlipV) _videoProjectionMatrix1 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1.0f, -1.0f, 1.0f)) * _videoProjectionMatrix1;
-					if (ContentFlipH) _videoProjectionMatrix0 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix0;
-					if (ContentFlipH) _videoProjectionMatrix1 = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(-1.0f, 1.0f, 1.0f)) * _videoProjectionMatrix1;
-
-					_videoBackgroundMeshGO0 = CreateVideoBackgroundMesh(0, _videoWidth0, _videoHeight0, BackgroundLayer0, out _videoColorArray0, out _videoColor32Array0, out _videoTexture0, out _videoMaterial0);
-					_videoBackgroundMeshGO1 = CreateVideoBackgroundMesh(1, _videoWidth1, _videoHeight1, BackgroundLayer1, out _videoColorArray1, out _videoColor32Array1, out _videoTexture1, out _videoMaterial1);
-					if (_videoBackgroundMeshGO0 == null || _videoTexture0 == null || _videoMaterial0 == null || _videoBackgroundMeshGO1 == null || _videoTexture1 == null || _videoMaterial1 == null) {
-						Log (LogTag + "Error: unable to create video background mesh.");
-					}
-				}
 	            
 				// Create background camera(s) to actually view the "video background" layer(s).
 				bool haveStereoARCameras = false;
@@ -730,6 +745,7 @@ public class ARController : MonoBehaviour
 	            _sceneConfiguredForVideo = true;     
 	        } // !running
 		} // !sceneConfiguredForVideo
+		} // dontShowVideo == true
         
 		bool gotFrame = PluginFunctions.arwCapture();
 		bool ok = PluginFunctions.arwUpdateAR();
