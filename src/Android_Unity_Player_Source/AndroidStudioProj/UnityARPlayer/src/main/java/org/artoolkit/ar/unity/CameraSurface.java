@@ -59,6 +59,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import org.artoolkit.ar.base.NativeInterface;
 import java.io.IOException;
+import java.util.List;
 
 public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
@@ -147,6 +148,18 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
             if (parameters.getSupportedFocusModes().contains(camFocusMode)) {
                 parameters.setFocusMode(camFocusMode);
             }
+            //Look for highest supported preview size and use that one.
+            List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+
+            for (Camera.Size size: previewSizes
+                 ) {
+                Log.d("CameraSurface","PreviewSize: " + size.width + "x"+ size.height + "/n");
+            }
+
+            Camera.Size highestPreviewSize = parameters.getSupportedPreviewSizes().get(0);
+            Log.d("CameraSurface","PreviewSize: " + highestPreviewSize.width + "x"+ highestPreviewSize.height + "/n");
+            parameters.setPreviewSize(highestPreviewSize.width,highestPreviewSize.height);
+
             parameters.setPreviewFrameRate(30);
             camera.setParameters(parameters);
 
