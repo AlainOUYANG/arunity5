@@ -193,6 +193,7 @@ public class ARMarkerEditor : Editor
 			m.Filtered = EditorGUILayout.Toggle("Filtered:", m.Filtered);
 			m.FilterSampleRate = EditorGUILayout.Slider("Sample rate:", m.FilterSampleRate, 1.0f, 30.0f);
 			m.FilterCutoffFreq = EditorGUILayout.Slider("Cutoff freq.:", m.FilterCutoffFreq, 1.0f, 30.0f);
+            m.SameMarker = EditorGUILayout.Toggle ("Multiple times:", m.SameMarker);
 		}
 
         EditorGUILayout.BeginHorizontal();

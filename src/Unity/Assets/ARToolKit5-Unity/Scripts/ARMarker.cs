@@ -57,7 +57,8 @@ public enum ARWMarkerOption : int {
         ARW_MARKER_OPTION_SQUARE_USE_CONT_POSE_ESTIMATION = 4,
 		ARW_MARKER_OPTION_SQUARE_CONFIDENCE = 5,
 		ARW_MARKER_OPTION_SQUARE_CONFIDENCE_CUTOFF = 6,
-		ARW_MARKER_OPTION_NFT_SCALE = 7
+		ARW_MARKER_OPTION_NFT_SCALE = 7,
+        ARW_MARKER_OPTION_SAME = 11
 }
 
 /// <summary>
@@ -125,7 +126,11 @@ public class ARMarker : MonoBehaviour
 	// Marker configuration options.
 	[SerializeField]
 	private bool currentUseContPoseEstimation = false;						// Single marker only; whether continuous pose estimation should be used.
-	[SerializeField]
+	
+    [SerializeField]
+    private bool multipleTimes = false;
+
+    [SerializeField]
 	private bool currentFiltered = false;
 	[SerializeField]
 	private float currentFilterSampleRate = 30.0f;
@@ -281,6 +286,7 @@ public class ARMarker : MonoBehaviour
 				Filtered = currentFiltered;
 				FilterSampleRate = currentFilterSampleRate;
 				FilterCutoffFreq = currentFilterCutoffFreq;
+                SameMarker = multipleTimes;
 
 				// Retrieve any required information from the configured ARToolKit ARMarker.
 				if (MarkerType == MarkerType.NFT) {
@@ -419,6 +425,22 @@ public class ARMarker : MonoBehaviour
 			if (UID != NO_ID) {
 				PluginFunctions.arwSetMarkerOptionBool(UID, (int)ARWMarkerOption.ARW_MARKER_OPTION_FILTERED, value);
 			}
+        }
+    }
+
+    public bool SameMarker
+    {
+        get
+        {
+            return multipleTimes; // Serialised.
+        }
+
+        set
+        {
+            multipleTimes = value;
+            if (UID != NO_ID) {
+                PluginFunctions.arwSetMarkerOptionBool(UID, (int)ARWMarkerOption.ARW_MARKER_OPTION_SAME, value);
+            }
         }
     }
 
