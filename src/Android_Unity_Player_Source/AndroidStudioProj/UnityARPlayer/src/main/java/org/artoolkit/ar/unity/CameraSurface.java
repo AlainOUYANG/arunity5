@@ -151,12 +151,20 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
             //Look for highest supported preview size and use that one.
             List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
+            int highestWidth = Integer.MIN_VALUE;
+            int higestResIndex = -1;
+            int index = 0;
             for (Camera.Size size: previewSizes
                  ) {
-                Log.d("CameraSurface","PreviewSize: " + size.width + "x"+ size.height + "/n");
+                if(size.width > highestWidth){
+                    higestResIndex = index;
+                    highestWidth = size.width;
+                }
+                Log.d("CameraSurface","PreviewSize: " + size.width + "x"+ size.height + " Index: " + higestResIndex+ "/n");
+                index++;
             }
 
-            Camera.Size highestPreviewSize = parameters.getSupportedPreviewSizes().get(0);
+            Camera.Size highestPreviewSize = parameters.getSupportedPreviewSizes().get(higestResIndex);
             Log.d("CameraSurface","PreviewSize: " + highestPreviewSize.width + "x"+ highestPreviewSize.height + "/n");
             parameters.setPreviewSize(highestPreviewSize.width,highestPreviewSize.height);
 
