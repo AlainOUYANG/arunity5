@@ -85,6 +85,7 @@ public class UnityARPlayerActivity extends UnityPlayerNativeActivity {
     private DisplayControl mDisplayControl = null;
 
     protected final static int PERMISSION_REQUEST_CAMERA = 77;
+    private ViewGroup decorView;
 
 
     /**
@@ -122,6 +123,29 @@ public class UnityARPlayerActivity extends UnityPlayerNativeActivity {
         // or whenever a new preference is added (e.g. after an application upgrade).
         int resID = getResources().getIdentifier("preferences", "xml", getPackageName());
         PreferenceManager.setDefaultValues(this, resID, false);
+
+        //Find the Unity view. We need to find the Unity view in order to remove it and add in the video preview.
+        //After adding the video preview the Unity view is added back in gain. This way we ensure that
+        //the video is in the background and the Unity view (containing the Unity scene(s)) overlay the video.
+        this.decorView = (ViewGroup)this.getWindow().getDecorView();
+        if(this.decorView == null) {
+            Log.e("UnityARPlayerActivity", "Error: Failed to find the decorView.");
+        } else {
+            //Generally the Unity view is as position 0 in the decorView. In some cases, however, it
+            //is not. That is why we look for it in the view hierarchy.
+            for(int i = 0; i < this.decorView.getChildCount(); i++) {
+                View decorViewChild = this.decorView.getChildAt(i);
+                if(decorViewChild instanceof ViewGroup) {
+                    this.unityView = (ViewGroup)decorViewChild;
+                    break;
+                }
+            }
+
+            if(this.unityView == null) {
+                String errorMsg = "Error: Failed to find the unityView.";
+                Log.e("UnityARPlayerActivity", errorMsg);
+            }
+        }
 
 		//Request permission to use the camera on android 23+
         int permissionCheck = ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.CAMERA);
@@ -166,12 +190,7 @@ public class UnityARPlayerActivity extends UnityPlayerNativeActivity {
         //View focusView = getCurrentFocus(); // Save the focus, in case we inadvertently change it.
         //Log.i(TAG, "Focus view is " + focusView.toString() + ".");
 
-        ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
-        unityView = (ViewGroup) decorView.getChildAt(0);
-        if (unityView == null) {
-            Log.e(TAG, "Error: Could not find top view.");
-            return;
-        }
+
         //Log.i(TAG, "Top view is " + unityView.toString() + ".");
 
         // Create a placeholder for us to insert the camera preview capture object to the
@@ -215,7 +234,6 @@ public class UnityARPlayerActivity extends UnityPlayerNativeActivity {
         decorView.addView(unityView);
 
         previewInserter = null;
-        unityView = null;
     }
 
     void launchPreferencesActivity() {
